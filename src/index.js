@@ -62,6 +62,7 @@ function renderIntoResultsContent(element) {
   outputElement.appendChild(element);
 }
 
+
 /**
  * Birtir niðurstöður í viðmóti.
  * @param {SearchLocation} location
@@ -73,28 +74,31 @@ function renderResults(location, results) {
     {},
     el('th', {}, 'Tími'),
     el('th', {}, 'Hiti'),
-    el('th', {}, 'Úrkoma'),
-  );
-  console.log(results);
-  const body = el(
-    'tr',
-    {},
-    el('td', {}, 'Tími'),
-    el('td', {}, 'Hiti'),
-    el('td', {}, 'Úrkoma'),
+    el('th', {}, 'Úrkoma')
   );
 
-  const resultsTable = el('table', { class: 'forecast' }, header, body);
+  const rows = results.map((forecast) =>
+    el(
+      'tr',
+      {},
+      el('td', {}, forecast.time.substring(11)),
+      el('td', {}, `${forecast.temperature}°C`),
+      el('td', {}, `${forecast.precipitation} mm`)
+    )
+  );
+
+  const resultsTable = el('table', { class: 'forecast' }, header, ...rows);
 
   renderIntoResultsContent(
     el(
       'section',
       {},
       el('h2', {}, `Leitarniðurstöður fyrir: ${location.title}`),
-      resultsTable,
-    ),
+      resultsTable
+    )
   );
 }
+
 
 /**
  * Birta villu í viðmóti.
