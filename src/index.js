@@ -93,7 +93,9 @@ function renderResults(location, results) {
     el(
       'section',
       {},
-      el('h2', {}, `Leitarniðurstöður fyrir: ${location.title}`),
+      el('h2', {}, `Niðurstöður`),
+      el('h2', {}, `${location.title}`),
+      el('p', {}, `Spá fyrir daginn á breiddargráðu ${location.lat} og lengdargráðu ${location.lng}`),
       resultsTable
     )
   );
@@ -107,7 +109,7 @@ function renderResults(location, results) {
 function renderError(error) {
   console.log(error);
   const message = error.message;
-  renderIntoResultsContent(el('p', {}, `Villa: ${message}`));
+  renderIntoResultsContent(el('p', {}, `${message}`));
 }
 
 /**
@@ -143,9 +145,33 @@ async function onSearch(location) {
  * Framkvæmir leit að veðri fyrir núverandi staðsetningu.
  * Biður notanda um leyfi gegnum vafra.
  */
+/**
+ * Framkvæmir leit að veðri fyrir núverandi staðsetningu.
+ * Biður notanda um leyfi gegnum vafra.
+ */
 async function onSearchMyLocation() {
-  // TODO útfæra
+  const getCurrentPosition = () => {
+    return new Promise((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(resolve, reject);
+    });
+  };
+
+  try {
+    const position = await getCurrentPosition();
+    const location = {
+      lat: position.coords.latitude,
+      lng: position.coords.longitude,
+      title: "Mín staðsetning " 
+    };
+    
+    // Call onSearch with the user's location
+    await onSearch(location);
+  } catch (error) {
+    console.log(error)
+    renderError(new Error("Gat ekki sótt staðsetningu"));
+  }
 }
+
 
 /**
  * Býr til takka fyrir staðsetningu.
@@ -191,12 +217,21 @@ function render(container, locations, onSearch, onSearchMyLocation) {
 
   // Búum til <header> með beinum DOM aðgerðum
   const headerElement = document.createElement('header');
+  const paragraph = document.createElement('p')
   const heading = document.createElement('h1');
-  heading.appendChild(document.createTextNode('<fyrirsögn>'));
+  const subHeading = document.createElement('h2');
+  heading.appendChild(document.createTextNode('☀️Veður🌧️'));
+  paragraph.appendChild(
+    document.createTextNode("Veldu stað til að sjá hita- og úrkomuspá")
+  )
+  subHeading.appendChild(document.createTextNode("Staðsetningar"))
   headerElement.appendChild(heading);
+  headerElement.appendChild(paragraph)
+  headerElement.appendChild(subHeading)
   parentElement.appendChild(headerElement);
 
   // TODO útfæra inngangstexta
+
   // Búa til <div class="loctions">
   const locationsElement = document.createElement('div');
   locationsElement.classList.add('locations');
@@ -208,6 +243,11 @@ function render(container, locations, onSearch, onSearchMyLocation) {
   // <div class="loctions"><ul class="locations__list"></ul></div>
   locationsElement.appendChild(locationsListElement);
 
+  let liButtonElement = renderLocationButton("Núverandi staðsetning", () => {
+    console.log('Fetching current location...');
+    onSearchMyLocation();
+  });
+  locationsListElement.appendChild(liButtonElement);
   // <div class="loctions"><ul class="locations__list"><li><li><li></ul></div>
   for (const location of locations) {
     const liButtonElement = renderLocationButton(location.title, () => {
